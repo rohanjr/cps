@@ -21,6 +21,7 @@ type term =
   | Lam of (variable * typ) * term
   | App of term * term
   | Let of variable * term * term
+  | Fix of term (* recursive definition *)
 
 type nat = Z | S of nat
 
@@ -85,6 +86,11 @@ let rec typ_of_term (ctx : context) : term -> typ option = function
       | None -> None
       | Some tp -> typ_of_term ((var, tp) :: ctx) tm2
       end
+  | Fix tm ->
+      begin match typ_of_term ctx tm with
+      | Some (Arrow (tp, tp')) -> if tp = tp' then Some tp else None
+      | _ -> None
+      end
 
 let infer_type : term -> typ option = typ_of_term []
 
@@ -130,6 +136,11 @@ let rec value_of_term (env : environment) : term -> value option = function
       begin match value_of_term env tm1 with
       | None -> None
       | Some v -> value_of_term ((var, v) :: env) tm2
+      end
+  | Fix tm ->
+      begin match value_of_term env tm with
+      | Some (VLam (var, tm') as lam) -> value_of_term ((var, lam) :: env) tm'
+      | _ -> None
       end
 
 let evaluate : term -> value option = value_of_term []
