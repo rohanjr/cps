@@ -3,7 +3,7 @@ type variable = Variable of string
 
 type typ =
   | Unit
-  | Integer
+  | Nat
   | Arrow of typ * typ
   | Cross of typ * typ
 
@@ -11,7 +11,8 @@ type context = (variable * typ) list
 
 type term =
   | U
-  | Int of int
+  | Zero
+  | Succ of term
   | Var of variable
   | Lam of (variable * typ) * term
   | App of term * term
@@ -20,9 +21,11 @@ type term =
   | Snd of term
   | Let of variable * term * term
 
+type nat = Z | S of nat
+
 type value =
   | VU
-  | VInt of int
+  | VNat of nat
   | VLam of variable * term
   | VPair of value * value
 
@@ -38,7 +41,12 @@ let rec lookup (key : 'key) : ('key * 'value) list -> 'value option = function
 
 let rec typ_of_term (ctx : context) : term -> typ option = function
   | U -> Some Unit
-  | Int _ -> Some Integer
+  | Zero -> Some Nat
+  | Succ tm ->
+      begin match typ_of_term ctx tm with
+      | Some Nat -> Some Nat
+      | _ -> None
+      end
   | Var var -> lookup var ctx
   | Lam ((var, tp) as decl, tm) ->
       begin match typ_of_term (decl :: ctx) tm with
@@ -81,7 +89,12 @@ let infer_type : term -> typ option = typ_of_term []
 
 let rec value_of_term (env : environment) : term -> value option = function
   | U -> Some VU
-  | Int i -> Some (VInt i)
+  | Zero -> Some (VNat Z)
+  | Succ tm ->
+      begin match value_of_term env tm with
+      | Some (VNat n) -> Some (VNat (S n))
+      | _ -> None
+      end
   | Var var -> lookup var env
   | Lam ((var, _), tm) -> Some (VLam (var, tm))
   | App (tm1, tm2) ->
@@ -119,11 +132,13 @@ let evaluate : term -> value option = value_of_term []
 (* Examples *)
 
 let tu = infer_type U
-let t0 = infer_type (Int 0)
-let t2_3 = infer_type (Pair (Int 2, Int 3))
-let tinc = infer_type (Lam ((Variable "x", Integer), Var (Variable "x")))
+let t0 = infer_type Zero
+let t2 = infer_type (Succ (Succ Zero))
+let t12 = infer_type (Pair (Succ Zero, Succ (Succ Zero)))
+let tinc = infer_type (Lam ((Variable "x", Nat), Var (Variable "x")))
 
 let vu = evaluate U
-let v0 = evaluate (Int 0)
-let v2_3 = evaluate (Pair (Int 2, Int 3))
-let vinc = evaluate (Lam ((Variable "x", Integer), Var (Variable "x")))
+let v0 = evaluate Zero
+let v2 = evaluate (Succ (Succ Zero))
+let v12 = evaluate (Pair (Succ Zero, Succ (Succ Zero)))
+let vinc = evaluate (Lam ((Variable "x", Nat), Var (Variable "x")))
