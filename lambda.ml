@@ -13,6 +13,7 @@ type term =
   | U
   | Zero
   | Succ of term
+  | Case of term * term * (variable * term)
   | Var of variable
   | Lam of (variable * typ) * term
   | App of term * term
@@ -45,6 +46,12 @@ let rec typ_of_term (ctx : context) : term -> typ option = function
   | Succ tm ->
       begin match typ_of_term ctx tm with
       | Some Nat -> Some Nat
+      | _ -> None
+      end
+  | Case (tm, ztm, (var, stm)) ->
+      begin match typ_of_term ctx tm, typ_of_term ctx ztm,
+                  typ_of_term ((var, Nat) :: ctx) stm with
+      | Some Nat, Some tp, Some tp' -> if tp = tp' then Some tp else None
       | _ -> None
       end
   | Var var -> lookup var ctx
@@ -93,6 +100,12 @@ let rec value_of_term (env : environment) : term -> value option = function
   | Succ tm ->
       begin match value_of_term env tm with
       | Some (VNat n) -> Some (VNat (S n))
+      | _ -> None
+      end
+  | Case (tm, ztm, (var, stm)) ->
+      begin match value_of_term env tm with
+      | Some (VNat Z) -> value_of_term env ztm
+      | Some (VNat (S n)) -> value_of_term ((var, VNat n) :: env) stm
       | _ -> None
       end
   | Var var -> lookup var env
