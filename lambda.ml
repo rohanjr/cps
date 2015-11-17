@@ -61,13 +61,9 @@ let rec typ_of_term (ctx : context) : term -> typ option = function
       | Some tp' -> Some (Arrow (tp, tp'))
       end
   | App (tm1, tm2) ->
-      begin match typ_of_term ctx tm1 with
-      | Some (Arrow (tp1, tp2)) ->
-          begin match typ_of_term ctx tm2 with
-          | None -> None
-          | Some tp -> if tp = tp1 then Some tp2 else None
-          end
-      | _ -> None
+      begin match typ_of_term ctx tm1, typ_of_term ctx tm2 with
+      | Some (Arrow (tp1, tp2)), Some tp -> if tp = tp1 then Some tp2 else None
+      | _, _ -> None
       end
   | Pair (tm1, tm2) ->
       begin match typ_of_term ctx tm1, typ_of_term ctx tm2 with
@@ -111,13 +107,9 @@ let rec value_of_term (env : environment) : term -> value option = function
   | Var var -> lookup var env
   | Lam ((var, _), tm) -> Some (VLam (var, tm))
   | App (tm1, tm2) ->
-      begin match value_of_term env tm1 with
-      | Some (VLam (var, tm)) ->
-          begin match value_of_term env tm2 with
-          | None -> None
-          | Some v -> value_of_term ((var, v) :: env) tm
-          end
-      | _ -> None
+      begin match value_of_term env tm1, value_of_term env tm2 with
+      | Some (VLam (var, tm)), Some v -> value_of_term ((var, v) :: env) tm
+      | _, _ -> None
       end
   | Pair (tm1, tm2) ->
       begin match value_of_term env tm1, value_of_term env tm2 with
