@@ -4,8 +4,8 @@ type variable = Variable of string
 type typ =
   | Unit
   | Nat
-  | Arrow of typ * typ
   | Cross of typ * typ
+  | Arrow of typ * typ
 
 type context = (variable * typ) list
 
@@ -14,12 +14,12 @@ type term =
   | Zero
   | Succ of term
   | Case of term * term * (variable * term)
-  | Var of variable
-  | Lam of (variable * typ) * term
-  | App of term * term
   | Pair of term * term
   | Fst of term
   | Snd of term
+  | Var of variable
+  | Lam of (variable * typ) * term
+  | App of term * term
   | Let of variable * term * term
 
 type nat = Z | S of nat
@@ -27,8 +27,8 @@ type nat = Z | S of nat
 type value =
   | VU
   | VNat of nat
-  | VLam of variable * term
   | VPair of value * value
+  | VLam of variable * term
 
 type environment = (variable * value) list
 
@@ -54,17 +54,6 @@ let rec typ_of_term (ctx : context) : term -> typ option = function
       | Some Nat, Some tp, Some tp' -> if tp = tp' then Some tp else None
       | _ -> None
       end
-  | Var var -> lookup var ctx
-  | Lam ((var, tp) as decl, tm) ->
-      begin match typ_of_term (decl :: ctx) tm with
-      | None -> None
-      | Some tp' -> Some (Arrow (tp, tp'))
-      end
-  | App (tm1, tm2) ->
-      begin match typ_of_term ctx tm1, typ_of_term ctx tm2 with
-      | Some (Arrow (tp1, tp2)), Some tp -> if tp = tp1 then Some tp2 else None
-      | _, _ -> None
-      end
   | Pair (tm1, tm2) ->
       begin match typ_of_term ctx tm1, typ_of_term ctx tm2 with
       | Some tp1, Some tp2 -> Some (Cross (tp1, tp2))
@@ -79,6 +68,17 @@ let rec typ_of_term (ctx : context) : term -> typ option = function
       begin match typ_of_term ctx tm with
       | Some (Cross (_, tp2)) -> Some tp2
       | _ -> None
+      end
+  | Var var -> lookup var ctx
+  | Lam ((var, tp) as decl, tm) ->
+      begin match typ_of_term (decl :: ctx) tm with
+      | None -> None
+      | Some tp' -> Some (Arrow (tp, tp'))
+      end
+  | App (tm1, tm2) ->
+      begin match typ_of_term ctx tm1, typ_of_term ctx tm2 with
+      | Some (Arrow (tp1, tp2)), Some tp -> if tp = tp1 then Some tp2 else None
+      | _, _ -> None
       end
   | Let (var, tm1, tm2) ->
       begin match typ_of_term ctx tm1 with
@@ -104,13 +104,6 @@ let rec value_of_term (env : environment) : term -> value option = function
       | Some (VNat (S n)) -> value_of_term ((var, VNat n) :: env) stm
       | _ -> None
       end
-  | Var var -> lookup var env
-  | Lam ((var, _), tm) -> Some (VLam (var, tm))
-  | App (tm1, tm2) ->
-      begin match value_of_term env tm1, value_of_term env tm2 with
-      | Some (VLam (var, tm)), Some v -> value_of_term ((var, v) :: env) tm
-      | _, _ -> None
-      end
   | Pair (tm1, tm2) ->
       begin match value_of_term env tm1, value_of_term env tm2 with
       | Some v1, Some v2 -> Some (VPair (v1, v2))
@@ -125,6 +118,13 @@ let rec value_of_term (env : environment) : term -> value option = function
       begin match value_of_term env tm with
       | Some (VPair (_, v2)) -> Some v2
       | _ -> None
+      end
+  | Var var -> lookup var env
+  | Lam ((var, _), tm) -> Some (VLam (var, tm))
+  | App (tm1, tm2) ->
+      begin match value_of_term env tm1, value_of_term env tm2 with
+      | Some (VLam (var, tm)), Some v -> value_of_term ((var, v) :: env) tm
+      | _, _ -> None
       end
   | Let (var, tm1, tm2) ->
       begin match value_of_term env tm1 with
