@@ -5,9 +5,12 @@ type typ =
   | Arrow of typ * typ
 
 type term =
-  (* trivial terms *)
+  | Trivial of trivial
+  (* serious term: named application between terms *)
+  (* let var = e1 e2 in tm *)
+  | LetApp of variable * (term * term) * term
+
+and trivial =
   | U
   | Var of variable
   | Lam of (variable * typ) * term
-  (* serious terms *)
-  | LetApp of variable * term * term

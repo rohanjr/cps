@@ -6,7 +6,9 @@ type typ =
 
 type term =
   | Trivial of trivial
-  | LetApp of variable * trivial * trivial (* serious *)
+  (* serious term: named application between trivial terms *)
+  (* let var = tr2 tr2 in tm *)
+  | LetApp of variable * (trivial * trivial) * term
 
 and trivial =
   | U
