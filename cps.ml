@@ -2,19 +2,15 @@
 
 type variable = Variable of string
 
-type typ =
-  | Unit
-  | Arrow of typ * typ
-
-type trivial =
-  | U
-  | Var of variable
-  | Lam of variable * variable * serious
-
-and serious =
+type serious =
   | Cont of variable * trivial
   | KApp of (trivial * trivial) * (variable * serious)
   | Let of (variable * trivial) * serious
+
+and trivial =
+  | U
+  | Var of variable
+  | Lam of variable * variable * serious
 
 type program =
   | Program of variable * serious
