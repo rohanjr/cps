@@ -1,3 +1,4 @@
+(* TODO add different types of variables for values? *)
 type variable = Variable of string
 
 type typ =
