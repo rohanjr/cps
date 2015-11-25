@@ -1,7 +1,7 @@
 main:
 	ocamlbuild main.native
 
-toplevel:
+top:
 	ocamlbuild -use-menhir top.top;
 	./top.top -I _build/
 
