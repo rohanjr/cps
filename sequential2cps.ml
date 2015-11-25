@@ -7,9 +7,9 @@ let rec cps_trivial_of_sequential_trivial : S.trivial -> C.trivial = function
   | S.U -> C.U
   | S.SrcVar src_var -> C.SrcVar src_var
   | S.AppVar app_var -> C.AppVar app_var
-  | S.Lam ((src_var, _), tm) ->
+  | S.Lam (decl, tm) ->
       let cont_var = get_fresh_cont_var () in
-      C.Lam (src_var, cont_var,
+      C.Lam (decl, cont_var,
              cps_serious_of_sequential_term_cont
                (tm, fun tr -> C.Cont (cont_var, tr)))
 
@@ -17,9 +17,9 @@ and cps_serious_of_sequential_term_cont : S.term * (C.trivial -> C.serious) -> C
   | S.Trivial S.U, k -> k C.U
   | S.Trivial (S.SrcVar src_var), k -> k (C.SrcVar src_var)
   | S.Trivial (S.AppVar app_var), k -> k (C.AppVar app_var)
-  | S.Trivial (S.Lam ((src_var, _), tm)), k ->
+  | S.Trivial (S.Lam (decl, tm)), k ->
       let cont_var = get_fresh_cont_var () in
-      k (C.Lam (src_var, cont_var,
+      k (C.Lam (decl, cont_var,
                 cps_serious_of_sequential_term_cont
                   (tm, fun tr -> C.Cont (cont_var, tr))))
   | S.LetApp (app_var, (tr1, tr2), tm), k ->
@@ -30,8 +30,8 @@ and cps_serious_of_sequential_term_cont : S.term * (C.trivial -> C.serious) -> C
 let cps_program_of_sequential_term (tm : S.term) : C.program =
   let cont_var = get_fresh_cont_var () in
   C.Program (cont_var,
-            cps_serious_of_sequential_term_cont
-              (tm, fun tr -> C.Cont (cont_var, tr)))
+             cps_serious_of_sequential_term_cont
+               (tm, fun tr -> C.Cont (cont_var, tr)))
              (*cps_serious_of_sequential_term_cont
                (tm, fun tr -> C.Cont (cont_var,
                cps_trivial_of_sequential_trivial tr)))*)

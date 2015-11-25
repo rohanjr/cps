@@ -9,7 +9,7 @@ and trivial =
   | U
   | SrcVar of src_variable
   | AppVar of app_variable
-  | Lam of src_variable * cont_variable * serious
+  | Lam of (src_variable * typ) * cont_variable * serious
 
 type program =
   | Program of cont_variable * serious
