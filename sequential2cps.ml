@@ -32,6 +32,3 @@ let cps_program_of_sequential_term (tm : S.term) : C.program =
   C.Program (cont_var,
              cps_serious_of_sequential_term_cont
                (tm, fun tr -> C.Cont (cont_var, tr)))
-             (*cps_serious_of_sequential_term_cont
-               (tm, fun tr -> C.Cont (cont_var,
-               cps_trivial_of_sequential_trivial tr)))*)
