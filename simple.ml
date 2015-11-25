@@ -1,11 +1,7 @@
-type variable = Variable of string
-
-type typ =
-  | Unit
-  | Arrow of typ * typ
+open Variable
 
 type term =
   | U
-  | Var of variable
-  | Lam of (variable * typ) * term
+  | Var of src_variable
+  | Lam of (src_variable * typ) * term
   | App of term * term

@@ -1,17 +1,13 @@
-(* TODO add different types of variables for values? *)
-type variable = Variable of string
-
-type typ =
-  | Unit
-  | Arrow of typ * typ
+open Variable
 
 type term =
   | Trivial of trivial
   (* serious term: named application between trivial terms *)
   (* let var = tr2 tr2 in tm *)
-  | LetApp of variable * (trivial * trivial) * term
+  | LetApp of app_variable * (trivial * trivial) * term
 
 and trivial =
   | U
-  | Var of variable
-  | Lam of (variable * typ) * term
+  | SrcVar of src_variable
+  | AppVar of app_variable
+  | Lam of (src_variable * typ) * term
