@@ -15,7 +15,7 @@ and trivial =
 type program =
   | Program of cont_variable * serious
 
-(* Free variables TODO TEST! *)
+(* Free variable test *)
 
 let rec variable_free_in_serious (var_name : string) : serious -> bool = function
   | Cont (ContVariable name, tr) ->
