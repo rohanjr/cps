@@ -15,25 +15,29 @@ and trivial =
 type program =
   | Program of cont_variable * serious
 
-(* Free variable test *)
 
-let rec variable_free_in_serious (var_name : string) : serious -> bool = function
+(* Count number of free occurrences of a variable in a term *)
+(* Useful for optimizations *)
+
+let rec num_occurrences_in_serious (var_name : string) : serious -> int = function
   | Cont (ContVariable name, tr) ->
-      var_name <> name && variable_free_in_trivial var_name tr
+      if var_name = name then 0 else num_occurrences_in_trivial var_name tr
   | KApp ((tr1, tr2), (AppVariable name, ser)) ->
-      variable_free_in_trivial var_name tr1 ||
-      variable_free_in_trivial var_name tr2 ||
-      (var_name <> name && variable_free_in_serious var_name ser)
+      num_occurrences_in_trivial var_name tr1 +
+      num_occurrences_in_trivial var_name tr2 +
+      (if var_name = name then 0 else num_occurrences_in_serious var_name ser)
 
-and variable_free_in_trivial (var_name : string) : trivial -> bool = function
-  | U -> false
-  | SrcVar (SrcVariable name) | AppVar (AppVariable name) -> var_name = name
+and num_occurrences_in_trivial (var_name : string) : trivial -> int = function
+  | U -> 0
+  | SrcVar (SrcVariable name) | AppVar (AppVariable name) ->
+      if var_name = name then 0 else 1
   | Lam ((SrcVariable name1, _), ContVariable name2, ser) ->
-      var_name <> name1 && var_name <> name2 && variable_free_in_serious var_name ser
+      if var_name = name1 || var_name = name2 then 0
+      else num_occurrences_in_serious var_name ser
 
-let variable_free_in_program (var_name : string) : program -> bool = function
+let num_occurrences_in_program (var_name : string) : program -> int = function
   | Program (ContVariable name, ser) ->
-      var_name <> name && variable_free_in_serious var_name ser
+      if var_name = name then 0 else num_occurrences_in_serious var_name ser
 
 (* Type checking *)
 
