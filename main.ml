@@ -23,3 +23,7 @@ let cps_u = Simple2cps.cps_program_of_simple_term u
 let x_free_in_u = Cps.num_occurrences_in_program "x" cps_u
 let y_free_in_u = Cps.num_occurrences_in_program "y" cps_u
 let g_free_in_u = Cps.num_occurrences_in_program "g" cps_u
+
+(* Test new CPS IR *)
+let u = Simple2.U
+let cps_u = Simple2cps2.cps_term_of_simple_term u
